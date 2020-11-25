@@ -1,0 +1,6 @@
+name: goodreads-analysis
+dependencies:
+    - python==3.8.5
+    - pandas==1.1.4
+    - matplotlib==3.3.3
+    - pip==19.3.1
