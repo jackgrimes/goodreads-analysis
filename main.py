@@ -1,72 +1,34 @@
-import pandas as pd
-import datetime
-from datetime import timedelta, date
-from matplotlib import pyplot as plt
-
-df = pd.read_csv(
-    r"C:\Users\Jack\Downloads\goodreads_library_export.csv",
-    parse_dates=["Date Added", "Date Read"],
+from utils import (
+    separate_pre_goodreads_books,
+    get_daily_counts_cumulative,
+    plot_time_series,
+    read_in_the_data,
+    show_days_to_read,
+    book_scores,
 )
 
+if __name__ == "__main__":
 
-def daterange(start_date, end_date):
-    for n in range(int((end_date - start_date).days)):
-        yield start_date + timedelta(n)
+    df = read_in_the_data()
 
+    (
+        df_goodreads,
+        df_read_pre_goodreads,
+    ) = separate_pre_goodreads_books(df)
+    daily_counts_cumulative = get_daily_counts_cumulative(df_goodreads)
 
-start_date = df["Date Added"].min().date()
-end_date = datetime.datetime.now().date() + timedelta(1)
+    # Books read - -1 to account for book currently reading
+    daily_read_counts = daily_counts_cumulative["Read"] + len(df_read_pre_goodreads) - 1
+    plot_time_series(daily_read_counts, "Books read")
 
+    # Books to read
+    daily_counts_cumulative["to_read"] = (
+        daily_counts_cumulative["Added"] - daily_counts_cumulative["Read"]
+    )
+    plot_time_series(daily_counts_cumulative["to_read"], "Books to read")
 
-def books_to_read(start_date, end_date):
-    n_books_on_list = pd.DataFrame(columns=["date", "n"])
-    for single_date in daterange(start_date, end_date):
-        books_not_read = df[
-            (
-                (df["Date Added"] <= pd.to_datetime(single_date))
-                & (
-                    (df["Date Read"] >= pd.to_datetime(single_date))
-                    | (df["Read Count"] == 0)
-                ).astype(int)
-            )
-        ]
-        print(single_date.strftime("%Y-%m-%d"), books_not_read.shape[0])
-        n_books_on_list = pd.concat(
-            [
-                n_books_on_list,
-                pd.DataFrame({"date": [single_date], "n": [books_not_read.shape[0]]}),
-            ]
-        )
+    # Days from added to read
+    show_days_to_read(df_goodreads)
 
-    plt.plot(n_books_on_list["date"], n_books_on_list["n"])
-    plt.grid(True)
-    plt.title("Books to read")
-    plt.show()
-
-
-def books_read(start_date, end_date):
-    read_books = pd.DataFrame(columns=["date", "n"])
-    for single_date in daterange(start_date, end_date):
-        books_read = df[
-            (
-                (df["Date Read"] <= pd.to_datetime(single_date))
-                | ((df["Date Read"].isnull()) & (df["Read Count"] == 1)).astype(int)
-            )
-        ]
-        print(single_date.strftime("%Y-%m-%d"), books_read.shape[0])
-        read_books = pd.concat(
-            [
-                read_books,
-                pd.DataFrame({"date": [single_date], "n": [books_read.shape[0]]}),
-            ]
-        )
-
-    plt.plot(read_books["date"], read_books["n"])
-    plt.grid(True)
-    plt.title("Books read")
-    plt.show()
-
-
-books_to_read(start_date, end_date)
-
-books_read(start_date, end_date)
+    # Book scores
+    book_scores(df)
