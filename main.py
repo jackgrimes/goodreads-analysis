@@ -25,7 +25,7 @@ if __name__ == "__main__":
     daily_counts_cumulative["to_read"] = (
         daily_counts_cumulative["Added"] - daily_counts_cumulative["Read"]
     )
-    plot_time_series(daily_counts_cumulative["to_read"], "Books to read")
+    plot_time_series(daily_counts_cumulative["to_read"], "Books to read", ylim=True, grid=True)
 
     # Days from added to read
     show_days_to_read(df_goodreads)

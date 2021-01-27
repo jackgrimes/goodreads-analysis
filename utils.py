@@ -3,16 +3,26 @@ from datetime import datetime
 
 import pandas as pd
 from matplotlib import pyplot as plt
+import matplotlib.ticker as ticker
 
 from configs import data_path
 
 
-def plot_time_series(s, title):
+def plot_time_series(s, title, ylim=False, grid=False):
     plt.plot(s)
-    plt.grid(True)
+    if grid:
+        ax = plt.gca()
+        ax.yaxis.set_minor_locator(ticker.MultipleLocator(1))
+        ax.yaxis.set_major_locator(ticker.MultipleLocator(10))
+        plt.grid(b=True, which="minor", color="grey", linestyle="--", axis="y")
+        plt.grid(
+            b=True, which="major", color="grey", linestyle="-", axis="y", linewidth=2
+        )
     plt.title(title)
     plt.text(s.index[-1], s[-1], str(s[-1]))
     plt.text(s.index[-0], s[-0], str(s[-0]))
+    if ylim:
+        plt.ylim((0, s.max() * 1.1))
     plt.show()
 
 
@@ -26,7 +36,6 @@ def harmonize_index(col, df, min_date, max_date):
     df_harmonized.columns = [
         c.replace("count", col).replace("Date ", "") for c in df_harmonized.columns
     ]
-
     return df_harmonized
 
 
